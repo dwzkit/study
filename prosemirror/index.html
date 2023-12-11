@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ProseMirror Editor</title>
+  <meta charset="UTF-8">
+
+  <script src="dist/prosemirror-bundle.min.js" defer></script>
+  <link rel="stylesheet" href="dist/editor.css">
+</head>
+<style>
+  .node-view {
+    /*background: #FAF594;*/
+    /*border: 3px solid #0D0D0D;*/
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+    position: relative;
+    /*display: inline-block;*/
+  }
+
+
+  .label {
+    margin-left: 1rem;
+    background-color: #0D0D0D;
+    font-size: 0.6rem;
+    letter-spacing: 1px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #fff;
+    position: absolute;
+    top: 100px;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0 0 0.5rem 0.5rem;
+  }
+
+  /*.content {*/
+  /*  margin: 2.5rem 1rem 1rem;*/
+  /*  padding: 0.5rem;*/
+  /*  border: 2px dashed #0D0D0D20;*/
+  /*  border-radius: 0.5rem;*/
+  /*  display: inline-block;*/
+  /*}*/
+
+  .content:empty::before {
+    /*content: attr(data-placeholder);*/
+    /*content:"please input something";*/
+    content:"请选择";
+    color: #ccc;
+    font-style: italic;
+    pointer-events: none;
+  }
+
+  .content {
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 0px 10px;
+    margin: 0 2px;
+    display: inline-block;
+    word-break: break-all;
+    overflow-wrap: break-word;
+  }
+
+  .content:focus {
+    border: blue 1px solid;
+  }
+
+  p {
+    line-height: 2;
+  }
+  .ProseMirror :focus-visible {
+    outline: none;
+  }
+
+  /* 下拉菜单的基本样式 */
+  .dropdown-menu {
+    position: absolute;
+    border: 1px solid #ccc;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    padding: 5px 0;
+    z-index: 1000; /* 确保菜单显示在其他元素之上 */
+    min-width: 100px;
+  }
+
+  /* 菜单项的样式 */
+  .dropdown-item {
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  /* 鼠标悬浮时的菜单项样式 */
+  .dropdown-item:hover {
+    background-color: #f5f5f5;
+  }
+
+  /* 状态元素基本样式 */
+  .status-element {
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+    border: 2px solid #ccc; /* 未选中时的边框颜色 */
+    background-color: #fff; /* 未选中时的背景颜色 */
+  }
+
+  /* 选中状态的样式 */
+  .status-element.selected {
+    background-color: #007bff; /* 选中时的背景颜色 */
+  }
+
+</style>
+<body>
+<button id="myButton">Insert Input Node</button>
+<button id="getpos">Get Pos</button>
+
+<div id="editor"></div>
+<div id="content" style="display: none;">
+</div>
+</body>
+</html>

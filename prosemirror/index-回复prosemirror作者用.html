@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ProseMirror Editor</title>
+  <meta charset="UTF-8">
+
+  <script src="dist/prosemirror-bundle.min.js" defer></script>
+  <link rel="stylesheet" href="dist/editor.css">
+</head>
+<style>
+  .node-view {
+    /*background: #FAF594;*/
+    /*border: 3px solid #0D0D0D;*/
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+    position: relative;
+    /*display: inline-block;*/
+  }
+
+
+  .label {
+    margin-left: 1rem;
+    background-color: #0D0D0D;
+    font-size: 0.6rem;
+    letter-spacing: 1px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #fff;
+    position: absolute;
+    top: 100px;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0 0 0.5rem 0.5rem;
+  }
+
+  /*.content {*/
+  /*  margin: 2.5rem 1rem 1rem;*/
+  /*  padding: 0.5rem;*/
+  /*  border: 2px dashed #0D0D0D20;*/
+  /*  border-radius: 0.5rem;*/
+  /*  display: inline-block;*/
+  /*}*/
+
+  .content:empty::before {
+    /*content: attr(data-placeholder);*/
+    content:"请输入内容";
+    color: #ccc;
+    font-style: italic;
+    pointer-events: none;
+  }
+
+  .content {
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 0px 10px;
+    margin: 0 2px;
+    display: inline-block;
+    word-break: break-all;
+    overflow-wrap: break-word;
+  }
+
+  .content:focus {
+    border: blue 1px solid;
+  }
+
+
+  .ai-input-area:empty::before {
+    content: attr(data-placeholder);
+    color: #ccc;
+    font-style: italic;
+    pointer-events: none;
+  }
+
+  .ai-input-area {
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 0px 10px;
+    margin: 0 2px;
+    display: inline-block;
+    word-break: break-all;
+    overflow-wrap: break-word;
+  }
+
+  .ai-input-area:focus {
+    border: blue 1px solid;
+  }
+
+  p {
+    line-height: 2;
+  }
+  .ProseMirror :focus-visible {
+    outline: none;
+  }
+</style>
+<body>
+<button id="myButton">Insert Input Node</button>
+<button id="getpos">Get Pos</button>
+
+<div id="editor"></div>
+<div id="content" style="display: none;">
+</div>
+</body>
+</html>
