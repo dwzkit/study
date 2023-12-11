@@ -54,23 +54,13 @@ class InputNodeView  {
         this.dom.appendChild(this.contentDOM);
         this.dom.appendChild(this.createZeroWidthSpace());
 
-        const dataType = node.attrs["data-type"];
+        this.dataType = node.attrs["data-type"];
         this.options = node.attrs["options"];
-        this.dom.setAttribute('data-type',dataType)
+        this.dom.setAttribute('data-type',this.dataType)
         this.dom.setAttribute('options',this.options)
-
-        switch (dataType) {
-            case 'radio':
-                this.dropdownMenu = null;
-                this.createDropdownMenu(this.options);
-                break;
-            case 'checkbox':
-                this.checkboxDropdownMenu = null;
-                this.createCheckboxDropdownMenu(this.options);
-                break;
-            case 'default':
-                break;
-        }
+        this.dropdownMenu = null;
+        if (this.dataType === "radio" || this.dataType === "checkbox")
+            this.createDropdownMenu(this.options);
     }
 
     // 创建零宽空格元素
@@ -88,44 +78,22 @@ class InputNodeView  {
         this.dropdownMenu.classList.add('dropdown-menu');
         this.dropdownMenu.style.display = 'none';
 
-        // 添加单选项
+        const fragment = document.createDocumentFragment();
         options.forEach(option => {
             const item = this.createDropdownItem(option);
-            this.dropdownMenu.appendChild(item);
+            fragment.appendChild(item);
         });
+        this.dropdownMenu.appendChild(fragment);
 
-        // 将下拉菜单添加到 DOM
+        // this.updateDropdownSelection(this.node.textContent);
+        this.setupDropdownInteractions();
         document.body.appendChild(this.dropdownMenu);
-        this.setupDropdownInteractions(this.dropdownMenu);
-        // 更新下拉菜单的选中状态
-        this.updateDropdownSelection(this.node.textContent);
     }
 
-    createCheckboxDropdownMenu(options) {
-        this.checkboxDropdownMenu = document.createElement('div');
-        this.checkboxDropdownMenu.classList.add('dropdown-menu');
-        this.checkboxDropdownMenu.style.display = 'none';
-
-        options.forEach(option => {
-            const item = this.createCheckboxDropdownItem(option);
-            this.checkboxDropdownMenu.appendChild(item);
-        });
-
-        // 将下拉菜单添加到 DOM
-        document.body.appendChild(this.checkboxDropdownMenu);
-        this.setupCheckboxDropdownInteractions(this.checkboxDropdownMenu);
-    }
-
-    setupCheckboxDropdownInteractions(dropdownMenu) {
-        this.contentDOM.addEventListener('click', () => {
-            this.handleContentDOMClickInteraction(dropdownMenu)
-        });
-
-        document.addEventListener('click', (event) => {
-            if (!this.dom.contains(event.target)) {
-                // dropdownMenu.style.display = 'none';
-            }
-        }, true);
+    // 设置下拉菜单的交互
+    setupDropdownInteractions() {
+        this.contentDOM.addEventListener('click', () => this.handleContentDOMClickInteraction());
+        document.addEventListener('click', (event) => this.handleDocumentClick(event), true);
     }
 
     // 创建下拉菜单项
@@ -133,29 +101,38 @@ class InputNodeView  {
         const item = document.createElement('div');
         item.classList.add('dropdown-item')
 
-        const statusElement = document.createElement('span')
-        statusElement.classList.add('status-element')
+        switch (this.dataType) {
+            case "radio":
+                const statusElement = document.createElement('span')
+                statusElement.classList.add('status-element')
 
-        item.appendChild(statusElement);
-        item.appendChild(document.createTextNode(option));
-        item.onclick = () => this.handleSelectOption(option);
-        return item;
-    }
+                item.appendChild(statusElement);
+                item.appendChild(document.createTextNode(option));
+                item.onclick = () => this.handleRadioSelect(option);
+                break;
+            case 'checkbox':
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = option;
+                // checkbox.onchange = () => this.handleCheckboxSelect(checkbox, option);
 
-    createCheckboxDropdownItem(option) {
-        const item = document.createElement('label');
-        item.classList.add('dropdown-item');
+                const text = document.createTextNode(option);
 
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.value = option;
-        checkbox.onchange = () => this.handleCheckboxSelect(checkbox, option);
+                item.appendChild(checkbox);
+                item.appendChild(text);
 
-        const text = document.createTextNode(option);
+                // 点击item时处理checkbox状态
+                item.onclick = (event) => {
+                    if (event.target !== checkbox) {
+                        // 如果不是直接点击checkbox，则手动切换状态
+                        checkbox.checked = !checkbox.checked;
+                    }
+                    // 调用处理函数
+                    this.handleCheckboxSelect(checkbox, option);
+                };
 
-        item.appendChild(checkbox);
-        item.appendChild(text);
-
+                break;
+        }
         return item;
     }
 
@@ -166,14 +143,14 @@ class InputNodeView  {
             const pos = this.getPos() + this.node.nodeSize - 1;
 
             // 创建一个文档片段包含新内容
-            const content = this.view.state.schema.text("、"+ option);
+            const content = this.view.state.schema.text(this.node.textContent === "" ? option : "、"+ option);
             // 创建并分派事务
             const tr = this.view.state.tr.insert(pos, content);
             this.view.dispatch(tr);
         } else {
             // 取消选中操作
             console.log(`取消了选项: ${option}`);
-            const textToRemove = "、" + option;
+            const textToRemove = option;
             const startPos = this.getPos() + 1;
             const endPos = startPos + this.node.nodeSize -1 ;
 
@@ -181,10 +158,19 @@ class InputNodeView  {
             this.view.state.doc.nodesBetween(startPos, endPos, (node, pos) => {
                 console.log("node",node,"pos",pos)
                 if (node.type.name === this.node.type.name ) {
-                    const index = node.textContent.lastIndexOf(textToRemove);
-                    if (index !== -1) {
-                        const start = pos + index + 1;
-                        const end = start + textToRemove.length;
+                    const textContent = node.textContent;
+                    const indexToRemove = textContent.lastIndexOf(textToRemove);
+                    if (indexToRemove !== -1) {
+                        let start = pos + indexToRemove + 1;
+                        let end = start + textToRemove.length;
+
+                        // 如果textToRemove前面有顿号，则更新删除的起始位置
+                        if (indexToRemove > 0 && textContent[indexToRemove - 1] === '、') {
+                            start -= 1; // 向前移动一个字符位置以包括顿号
+                        } else if (indexToRemove === 0 && textContent[indexToRemove + textToRemove.length] === '、') {
+                            end += 1; // 向后移动一个字符位置以包括顿号
+                        }
+
                         const tr = this.view.state.tr.delete(start, end);
                         this.view.dispatch(tr);
                         return false; // 找到并删除后停止搜索
@@ -194,29 +180,7 @@ class InputNodeView  {
         }
     }
 
-    // contentDOM的click事件
-    handleContentDOMClickInteraction = (dropdownMenu) => {
-        const rect = this.contentDOM.getBoundingClientRect();
-        dropdownMenu.style.left = `${rect.left}px`;
-        dropdownMenu.style.top = `${rect.bottom}px`;
-        dropdownMenu.style.display = 'flex';
-    }
-
-    // document的click事件
-    handleDocumentClick = (event,dropdownMenu) => {
-        if (!this.dom.contains(event.target)) {
-            dropdownMenu.style.display = 'none';
-        }
-    }
-
-    // 设置下拉菜单的交互
-    setupDropdownInteractions(dropdownMenu) {
-        this.contentDOM.addEventListener('click', () => this.handleContentDOMClickInteraction(dropdownMenu));
-
-        document.addEventListener('click', (event) => this.handleDocumentClick(event, dropdownMenu), true);
-    }
-
-    handleSelectOption(option) {
+    handleRadioSelect(option) {
         // 获取当前节点的位置
         const pos = this.getPos();
 
@@ -230,10 +194,57 @@ class InputNodeView  {
         console.log(`选中了选项: ${option}`);
     }
 
+    handleContentDOMClickInteraction = () => {
+        const rect = this.contentDOM.getBoundingClientRect();
+        this.dropdownMenu.style.left = `${rect.left}px`;
+        this.dropdownMenu.style.top = `${rect.bottom}px`;
+        this.dropdownMenu.style.display = 'flex';
+    }
+
+    handleDocumentClick = (event) => {
+        switch (this.dataType) {
+            case "radio":
+                if (!this.dom.contains(event.target)) {
+                    this.dropdownMenu.style.display = 'none';
+                }
+                break;
+            case "checkbox":
+                if (!this.dom.contains(event.target) && !this.dropdownMenu.contains(event.target)) {
+                    this.dropdownMenu.style.display = 'none';
+                }
+                break;
+        }
+    }
+
     updateDropdownSelection(currentText) {
-        document.querySelectorAll('.dropdown-item .status-element').forEach((elem, index) => {
-            elem.classList.toggle('selected', currentText === this.options[index]);
-        });
+        switch (this.dataType) {
+            case "radio":
+                console.log("this.dropdownMenu.children",this.dropdownMenu.children)
+                // document.querySelectorAll('.dropdown-item .status-element').forEach((elem, index) => {
+                Array.from(this.dropdownMenu.children).forEach((elem, index) => {
+                    // 选择每个elem中的.status-element子元素
+                    const statusElement = elem.querySelector('.status-element');
+                    if (statusElement) {
+                        // 切换selected类，基于currentText和this.options的比较
+                        statusElement.classList.toggle('selected', currentText === this.options[index]);
+                    }
+                });
+                break;
+            case "checkbox":
+                // 将currentText分割成数组
+                const selectedOptions = currentText.split('、');
+
+                // 遍历this.dropdownMenu的子元素
+                Array.from(this.dropdownMenu.children).forEach((item, index) => {
+                    // 假设每个子元素中的第一个input元素是checkbox
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    if (checkbox) {
+                        // 检查是否选项在selectedOptions中
+                        checkbox.checked = selectedOptions.includes(this.options[index]);
+                    }
+                });
+                break;
+        }
     }
 
     update(node, decorations) {
@@ -251,9 +262,6 @@ class InputNodeView  {
     }
 
     destroy() {
-        // 执行其他清理工作（如果有）
-         // dropdown元素也应该销毁
-        // 如果存在下拉菜单，从 DOM 中移除它
         console.log("被销毁")
         if (this.dropdownMenu) {
             document.removeEventListener('click', this.handleContentDOMClickInteraction);
