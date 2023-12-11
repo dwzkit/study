@@ -5,8 +5,6 @@ import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { addListNodes } from 'prosemirror-schema-list';
 import { exampleSetup } from 'prosemirror-example-setup';
 
-import {computePosition, flip, offset, shift,autoUpdate} from "@floating-ui/dom";
-
 const node_view = {
     attrs: {
         "data-type": { default: "input" },
@@ -61,17 +59,8 @@ class InputNodeView  {
         this.dom.setAttribute('data-type',this.dataType)
         this.dom.setAttribute('options',this.options)
         this.dropdownMenu = null;
-        if (this.dataType === "radio" || this.dataType === "checkbox") {
-            // 绑定方法的原因：https://chat.openai.com/c/d9c05aa1-a512-42d9-b749-7b1b6677e8b3
-            this.hideDropdownBound = this.hideDropdown.bind(this);
-
+        if (this.dataType === "radio" || this.dataType === "checkbox")
             this.createDropdownMenu(this.options);
-            this.cleanup = autoUpdate(
-                this.contentDOM,
-                this.dropdownMenu,
-                this.updateDropdownFloatingPostion
-            );
-        }
     }
 
     // 创建零宽空格元素
@@ -87,6 +76,7 @@ class InputNodeView  {
         // 创建下拉菜单元素
         this.dropdownMenu = document.createElement('div');
         this.dropdownMenu.classList.add('dropdown-menu');
+        this.dropdownMenu.style.display = 'none';
 
         const fragment = document.createDocumentFragment();
         options.forEach(option => {
@@ -94,49 +84,19 @@ class InputNodeView  {
             fragment.appendChild(item);
         });
         this.dropdownMenu.appendChild(fragment);
-        this.updateDropdownSelection(this.node.textContent);
 
+        this.updateDropdownSelection(this.node.textContent);
         this.setupDropdownInteractions();
         document.body.appendChild(this.dropdownMenu);
     }
 
     // 设置下拉菜单的交互
     setupDropdownInteractions() {
-        this.contentDOM.addEventListener("click",()=>this.showDropdown());
-        document.addEventListener('click', this.hideDropdownBound, true);
+        this.contentDOM.addEventListener('click', () => this.handleContentDOMClickInteraction());
+        document.addEventListener('click', (event) => this.handleDocumentClick(event), true);
     }
 
-    // 改用箭头函数的原因：https://chat.openai.com/c/d9c05aa1-a512-42d9-b749-7b1b6677e8b3
-    updateDropdownFloatingPostion = () => {
-        computePosition(this.contentDOM, this.dropdownMenu, {placement: 'bottom-start',
-            middleware: [offset(5), flip(), shift()]}).then(({x, y, placement, middlewareData}) => {
-            Object.assign(this.dropdownMenu.style, {
-                left: `${x}px`,
-                top: `${y}px`,
-            });
-        });
-    }
-
-    showDropdown() {
-        this.dropdownMenu.style.display = 'flex';
-        this.updateDropdownFloatingPostion();
-    }
-
-    hideDropdown(event) {
-        switch (this.dataType) {
-            case "radio":
-                if (!this.dom.contains(event.target)) {
-                    this.dropdownMenu.style.display = '';
-                }
-                break;
-            case "checkbox":
-                if (!this.dom.contains(event.target) && !this.dropdownMenu.contains(event.target)) {
-                    this.dropdownMenu.style.display = '';
-                }
-                break;
-        }
-    }
-
+    // 创建下拉菜单项
     createDropdownItem(option) {
         const item = document.createElement('div');
         item.classList.add('dropdown-item')
@@ -234,6 +194,28 @@ class InputNodeView  {
         console.log(`选中了选项: ${option}`);
     }
 
+    handleContentDOMClickInteraction = () => {
+        const rect = this.contentDOM.getBoundingClientRect();
+        this.dropdownMenu.style.left = `${rect.left}px`;
+        this.dropdownMenu.style.top = `${rect.bottom}px`;
+        this.dropdownMenu.style.display = 'flex';
+    }
+
+    handleDocumentClick = (event) => {
+        switch (this.dataType) {
+            case "radio":
+                if (!this.dom.contains(event.target)) {
+                    this.dropdownMenu.style.display = 'none';
+                }
+                break;
+            case "checkbox":
+                if (!this.dom.contains(event.target) && !this.dropdownMenu.contains(event.target)) {
+                    this.dropdownMenu.style.display = 'none';
+                }
+                break;
+        }
+    }
+
     updateDropdownSelection(currentText) {
         switch (this.dataType) {
             case "radio":
@@ -282,8 +264,8 @@ class InputNodeView  {
     destroy() {
         console.log("被销毁")
         if (this.dropdownMenu) {
-            this.cleanup();
-            document.removeEventListener('click', this.hideDropdownBound, true);
+            document.removeEventListener('click', this.handleContentDOMClickInteraction);
+            this.contentDOM.removeEventListener('click', this.handleDocumentClick);
             this.dropdownMenu.parentNode.removeChild(this.dropdownMenu);
             this.dropdownMenu = null;
         }

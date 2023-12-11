@@ -24,6 +24,7 @@
     "prosemirror-view": "^1.32.5"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.5.3",
     "prosemirror-keymap": "^1.2.2"
   }
 }
