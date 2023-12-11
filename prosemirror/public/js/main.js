@@ -85,7 +85,7 @@ class InputNodeView  {
         });
         this.dropdownMenu.appendChild(fragment);
 
-        // this.updateDropdownSelection(this.node.textContent);
+        this.updateDropdownSelection(this.node.textContent);
         this.setupDropdownInteractions();
         document.body.appendChild(this.dropdownMenu);
     }
@@ -406,13 +406,20 @@ function insertnode_view() {
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "A"
+                                    "text": "选项2"
                                 }
                             ]
                         },
                         {
                             "type": "text",
                             "text": "This is still the text editor you’re used to, but enriched with node views."
+                        },
+                        {
+                            "type": "node_view",
+                            "attrs": {
+                                "data-type": "radio",  // 或 "checkbox"
+                                "options": ["选项1", "选项2", "选项3"]
+                            },
                         },
                         {
                             "type": "node_view",
@@ -444,9 +451,13 @@ function insertnode_view() {
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "B"
+                                    "text": "选项1、选项3"
                                 }
                             ]
+                        },
+                        {
+                            "type": "text",
+                            "text": "That’s a JavaScript node view. We are really living in the future."
                         },
                         {
                             "type": "node_view",
@@ -457,13 +468,9 @@ function insertnode_view() {
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": "B"
+                                    "text": "选项2"
                                 }
                             ]
-                        },
-                        {
-                            "type": "text",
-                            "text": "That’s a JavaScript node view. We are really living in the future."
                         },
                     ]
                 }
