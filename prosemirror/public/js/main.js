@@ -11,6 +11,7 @@ const node_view = {
     attrs: {
         "data-type": { default: "input" },
         "options": { default: [] }, // 存储选项的属性
+        "data-placeholder": {}
         // 可以添加其他属性
     },
     content: "inline*",
@@ -21,12 +22,14 @@ const node_view = {
         tag: 'span.node-view',  // 适用于您的 DOM 结构
         getAttrs: dom => ({
             "data-type": dom.getAttribute("data-type") || "input",
+            "data-placeholder": dom.getAttribute("data-placeholder") || "",
             "options": JSON.parse(dom.getAttribute("options") || "[]")
         })
     }],
     toDOM(node) {
         return ["span", { class: 'node-view',
             "data-type": node.attrs["data-type"],
+            "data-placeholder": node.attrs["data-placeholder"],
             "options": JSON.stringify(node.attrs["options"]) }, 0];  // 调整为适合您的 DOM 结构
     }
 };
@@ -49,6 +52,7 @@ class InputNodeView  {
 
         this.contentDOM = document.createElement('span')
         this.contentDOM.classList.add('content')
+        this.contentDOM.setAttribute("data-placeholder",node.attrs["data-placeholder"] || "")
         this.contentDOM.contentEditable = true
 
         // 添加零宽空格和内容元素
@@ -237,8 +241,6 @@ class InputNodeView  {
     updateDropdownSelection(currentText) {
         switch (this.dataType) {
             case "radio":
-                console.log("this.dropdownMenu.children",this.dropdownMenu.children)
-                // document.querySelectorAll('.dropdown-item .status-element').forEach((elem, index) => {
                 Array.from(this.dropdownMenu.children).forEach((elem, index) => {
                     // 选择每个elem中的.status-element子元素
                     const statusElement = elem.querySelector('.status-element');
@@ -418,6 +420,7 @@ function insertnode_view() {
                         {
                             "type": "node_view",
                             "attrs": {
+                                "data-placeholder": "请选择",
                                 "data-type": "radio",  // 或 "checkbox"
                                 "options": ["选项1", "选项2", "选项3"]
                             },
@@ -435,6 +438,7 @@ function insertnode_view() {
                         {
                             "type": "node_view",
                             "attrs": {
+                                "data-placeholder": "请选择",
                                 "data-type": "radio",  // 或 "checkbox"
                                 "options": ["选项1", "选项2", "选项3"]
                             },
@@ -442,6 +446,7 @@ function insertnode_view() {
                         {
                             "type": "node_view",
                             "attrs": {
+                                "data-placeholder": "请输入内容",
                                 "data-type": "input",
                             },
                             "content": [
@@ -463,6 +468,7 @@ function insertnode_view() {
                         {
                             "type": "node_view",
                             "attrs": {
+                                "data-placeholder": "请选择",
                                 "data-type": "checkbox",
                                 "options": ["选项1", "选项2", "选项3"]
                             },
@@ -480,6 +486,7 @@ function insertnode_view() {
                         {
                             "type": "node_view",
                             "attrs": {
+                                "data-placeholder": "请选择",
                                 "data-type": "checkbox",
                                 "options": ["选项1", "选项2", "选项3"]
                             },
@@ -517,39 +524,33 @@ document.querySelector('#myButton').addEventListener('click', () => {
     insertCommand(state, dispatch);
 });
 function getPosition() {
-    // console.log("from",window.view.state.selection.from)
-    // console.log("to",window.view.state.selection.to)
-    // console.log("anchor",window.view.state.selection.anchor)
-    // console.log("$anchor",window.view.state.selection.$anchor)
-    // console.log(".state.doc.resolve(pos)",window.view.state.doc.resolve(window.view.state.selection.anchor))
     console.log("内容",window.view.state.doc.toJSON())
+    console.log("内容",window.view.state.doc.content)
+    console.log("内容",window.view.state.doc.textContent)
+    console.log("内容",convertToText(window.view.state.doc))
     window.view.focus()
 }
 
-document.querySelector('#getpos').addEventListener('click', getPosition);
+function convertToText(doc) {
+    let textOutput = '';
 
-// // 获取当前选择的头部位置
-// const { head } = view.state.selection;
-// // 获取该位置的节点及其前一个节点
-// const node = view.state.doc.nodeAt(head);
-// const prevNode = view.state.doc.nodeAt(head - 1);
-//
-// console.log("node && node.type.name",node && node.type.name)
-// console.log("prevNode && prevNode.type.name",prevNode && prevNode.type.name)
-//
-// // 检查当前节点或前一个节点是否是 node_view 类型
-// if ((node && node.type.name === "node_view") || (prevNode && prevNode.type.name === "node_view")) {
-//     event.preventDefault();
-//
-//     // 计算新的光标位置
-//     const newPos = head - 1;
-//
-//     // 创建一个新的文本选择
-//     const newSelection = TextSelection.create(view.state.doc, newPos);
-//
-//     // 创建并分发一个事务来更新选择
-//     const tr = view.state.tr.setSelection(newSelection);
-//     view.dispatch(tr);
-//
-//     return true; // 阻止事件继续传播
-// }
+    doc.descendants((node, pos) => {
+        if (node.type.name === "text") {
+            textOutput += node.text;
+        } else if (node.type.name === "node_view") {
+            if (node.content.size === 0) {
+                const dataType = node.attrs['data-type'];
+                if (dataType === 'input') {
+                    textOutput += node.attrs['data-placeholder'] || '';
+                } else if (dataType === 'radio' || dataType === 'checkbox') {
+                    textOutput += node.attrs.options?.[0] || '';
+                }
+            }
+        }
+        // 您可以根据需要在这里添加其他节点类型的处理逻辑
+    });
+
+    return textOutput;
+}
+
+document.querySelector('#getpos').addEventListener('click', getPosition);
