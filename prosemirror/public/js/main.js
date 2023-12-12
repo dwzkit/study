@@ -535,6 +535,7 @@ function convertToText(doc) {
     let textOutput = '';
 
     doc.descendants((node, pos) => {
+        console.log("node",node)
         if (node.type.name === "text") {
             textOutput += node.text;
         } else if (node.type.name === "node_view") {
