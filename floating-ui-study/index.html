@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ProseMirror Editor</title>
+  <meta charset="UTF-8">
+
+  <script src="dist/main.js" defer></script>
+  <link rel="stylesheet" href="dist/editor.css">
+</head>
+<style>
+  #tooltip {
+    width: max-content;
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    background: #222;
+    color: white;
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 90%;
+  }
+</style>
+<body>
+<button id="button" aria-describedby="tooltip">
+  My button
+</button>
+<div id="tooltip" role="tooltip">My tooltip</div>
+</div>
+</body>
+</html>
