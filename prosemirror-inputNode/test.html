@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="dist/editor.css">
+    <style>
+        .footnote {
+            border: 1px solid gray;
+            border-radius: 5px;
+            padding: 0px 10px;
+            margin: 0 5px;
+            display: inline-block;
+        }
+        .footnote .ProseMirror {
+            border: 1px solid blue;
+            margin: 0;
+            padding: 0;
+            display: inline-block;
+        }
+
+        .footnote .ProseMirror:empty::before {
+            content: "写点东西越多越好";
+            /*content:"please input something";*/
+            /*content:"请选择";*/
+            color: #ccc;
+            font-style: italic;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+<div id="editor"><div contenteditable="true" translate="no" class="ProseMirror">This paragraph has a footnote<div class="footnote" contenteditable="false"><div contenteditable="true" translate="no" class="ProseMirror">Which is a piece of text placed at the bottom of a page or chapter, providing additional <em>comments</em> or <em>citations</em>.</div></div> in it. And another one.</div>
+
+
+<!--    </p><p>Move onto<div class="footnote" contenteditable="false"><div contenteditable="true" translate="no" class="ProseMirror"></div></div> or click on a footnote number to edit it.</p></div></div>-->
+</body>
+</html>

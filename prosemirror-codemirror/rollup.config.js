@@ -4,7 +4,7 @@ import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
 
 export default {
-    input: 'src/js/main.js', // Entry point for the bundle
+    input: 'src/main.js', // Entry point for the bundle
     output: {
         file: 'dist/prosemirror-bundle.min.js', // Output file path and name
         format: 'umd', // Format of the output bundle (Universal Module Definition)

@@ -1,10 +1,9 @@
 import {EditorState,Plugin,PluginKey,TextSelection} from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import {Schema, DOMParser} from 'prosemirror-model';
-import { schema as basicSchema } from 'prosemirror-schema-basic';
+import { schema as baseSchema } from 'prosemirror-schema-basic';
 import { addListNodes } from 'prosemirror-schema-list';
 import { exampleSetup } from 'prosemirror-example-setup';
-
 import {computePosition, flip, offset, shift,autoUpdate} from "@floating-ui/dom";
 
 const node_view = {
@@ -34,11 +33,12 @@ const node_view = {
     }
 };
 
+let baseNodes = baseSchema.spec.nodes
 const mySchema = new Schema({
-    nodes: addListNodes(basicSchema.spec.nodes, 'paragraph block*', 'block').append({
+    nodes: addListNodes(baseSchema.spec.nodes, 'paragraph block*', 'block').append({
         node_view,
     }),
-    marks: basicSchema.spec.marks,
+    marks: baseSchema.spec.marks,
 });
 
 class InputNodeView  {
@@ -555,3 +555,4 @@ function convertToText(doc) {
 }
 
 document.querySelector('#getpos').addEventListener('click', getPosition);
+

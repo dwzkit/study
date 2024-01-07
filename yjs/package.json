@@ -1,0 +1,19 @@
+{
+  "name": "yjs",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "y-indexeddb": "^9.0.12",
+    "y-webrtc": "^10.2.6",
+    "y-websocket": "^1.5.1",
+    "yjs": "^13.6.10"
+  }
+}

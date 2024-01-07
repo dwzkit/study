@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ProseMirror Editor</title>
+  <meta charset="UTF-8">
+
+  <script src="dist/prosemirror-bundle.min.js" defer></script>
+  <link rel="stylesheet" href="dist/editor.css">
+</head>
+<style>
+  .ProseMirror {
+    counter-reset: prosemirror-footnote;
+  }
+  .footnote {
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 0px 10px;
+    margin: 0 5px;
+    display: inline-block;
+  }
+
+  .footnote .ProseMirror {
+    /*border: 1px solid blue;*/
+    margin: 0;
+    padding: 0;
+  }
+
+  .footnote .ProseMirror:empty::before {
+    content: "写点东西越多越好";
+    /*content:"please input something";*/
+    /*content:"请选择";*/
+    color: #ccc;
+    font-style: italic;
+    pointer-events: none;
+  }
+
+  .ProseMirror-hideselection .footnote-tooltip *::selection { background-color: transparent; }
+  .ProseMirror-hideselection .footnote-tooltip *::-moz-selection { background-color: transparent; }
+  .footnote-tooltip {
+    cursor: auto;
+    position: absolute;
+    left: -30px;
+    top: calc(100% + 10px);
+    background: silver;
+    padding: 3px;
+    border-radius: 2px;
+    width: 500px;
+  }
+  .footnote-tooltip::before {
+    border: 5px solid silver;
+    border-top-width: 0px;
+    border-left-color: transparent;
+    border-right-color: transparent;
+    position: absolute;
+    top: -5px;
+    left: 27px;
+    content: " ";
+    height: 0;
+    width: 0;
+  }
+</style>
+<body>
+
+<button id="getpos">Get Pos</button>
+<button id="setpos">Set Pos</button>
+<div id="editor"></div>
+
+<div id="content" style="display: none">
+<!--  <p>This paragraph has a footnote<div class="footnote">Which is a piece of text placed at the bottom of a page or chapter, providing additional <em>comments</em> or <em>citations</em>.</div> in it. And another one.</p>-->
+<!--  <p>Move onto<div class="footnote"></div> or click on a footnote number to edit it.</p>-->
+  This paragraph has a footnote<div class="footnote">Which is a piece of text placed at the bottom of a page or chapter, providing additional <em>comments</em> or <em>citations</em>.</div> in it. And another one.
+  Move onto<div class="footnote"></div> or click on a footnote number to edit it.
+</div>
+</body>
+</html>
